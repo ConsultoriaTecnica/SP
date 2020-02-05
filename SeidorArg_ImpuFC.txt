@@ -1,0 +1,249 @@
+ALTER PROCEDURE SeidorArg_ImpuFC (in DocKey int,in ObjectId int)
+LANGUAGE SQLSCRIPT 
+SQL SECURITY INVOKER
+AS
+BEGIN
+	
+	IF ObjectId = 13 THEN
+	
+		SELECT 
+		IMPUESTOS.Indicador,
+		IMPUESTOS.ObjType,
+		IMPUESTOS.DocEntry,
+		IMPUESTOS.DocNum,
+		IMPUESTOS.TaxCode,
+		IMPUESTOS.Name,
+		IMPUESTOS.VatPrcnt,
+		IMPUESTOS.WTaxSum,
+		IMPUESTOS.LineTotal,
+		IMPUESTOS.WTaxSumUSD
+		FROM (
+		--Detalle IVA
+		SELECT 
+		0 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T1.TaxCode, T2.Name, T1.VatPrcnt, 
+		SUM(T3.BaseSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS LineTotal,
+		SUM(T1.VatSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSum,
+		SUM(T1.VatSumSyCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSumUSD
+		
+		FROM OINV T0
+		INNER JOIN INV1 T1 ON T0.DocEntry = T1.DocEntry
+		LEFT OUTER JOIN OSTC T2 ON T1.TaxCode = T2.Code
+		INNER JOIN INV4 T3 ON T1.DocEntry = T3.DocEntry AND T1.LineNum = T3.LineNum
+		WHERE T0.Letter  'B'
+		GROUP BY T0.DocEntry, T0.DocNum, T0.ObjType, T1.TaxCode,T2.Name, T1.VatPrcnt
+		
+		UNION ALL
+		
+		SELECT 
+		1 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T3.WTCode, T3.WTName, T2.Rate, 
+		SUM(T2.BaseNetSum CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS BaseNetSum,
+		SUM(T2.WTaxSum    CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS WTaxSum,
+		0 as WTaxSumUSD
+		FROM OINV T0
+		INNER JOIN OWTX T1 ON T0.DocEntry  = T1.SrcObjAbs AND T0.ObjType = T1.SrcObjType
+		INNER JOIN WTX1 T2 ON T1.AbsEntry  = T2.AbsEntry
+		INNER JOIN OWTD T3 ON T2.WTaxAbsId = T3.AbsEntry
+		GROUP BY  T0.DocEntry, T0.DocNum, T0.ObjType, T3.WTCode, T3.WTName, T2.Rate
+		
+		) AS IMPUESTOS
+		WHERE IMPUESTOS.DocEntry = DocKey AND IMPUESTOS.ObjType = ObjectId
+		ORDER BY IMPUESTOS.DocEntry;
+	
+	ELSEIF ObjectId=14 THEN 
+		
+				SELECT 
+		IMPUESTOS.Indicador,
+		IMPUESTOS.ObjType,
+		IMPUESTOS.DocEntry,
+		IMPUESTOS.DocNum,
+		IMPUESTOS.TaxCode,
+		IMPUESTOS.Name,
+		IMPUESTOS.VatPrcnt,
+		IMPUESTOS.WTaxSum,
+		IMPUESTOS.LineTotal,
+		IMPUESTOS.WTaxSumUSD
+		FROM (
+		--Detalle IVA
+		SELECT 
+		0 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T1.TaxCode, T2.Name, T1.VatPrcnt, 
+		SUM(T3.BaseSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS LineTotal,
+		SUM(T1.VatSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSum,
+		SUM(T1.VatSumSyCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSumUSD
+		FROM ORIN T0
+		INNER JOIN RIN1 T1 ON T0.DocEntry = T1.DocEntry
+		LEFT OUTER JOIN OSTC T2 ON T1.TaxCode = T2.Code
+		INNER JOIN RIN4 T3 ON T1.DocEntry = T3.DocEntry AND T1.LineNum = T3.LineNum
+		WHERE T0.Letter  'B'
+		GROUP BY T0.DocEntry, T0.DocNum, T0.ObjType, T1.TaxCode,T2.Name, T1.VatPrcnt
+		
+		UNION ALL
+		
+		SELECT 
+		1 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T3.WTCode, T3.WTName, T2.Rate, 
+		SUM(T2.BaseNetSum CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS BaseNetSum,
+		SUM(T2.WTaxSum    CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS WTaxSum,
+		0 AS WTaxSumUSD
+		FROM ORIN T0
+		INNER JOIN OWTX T1 ON T0.DocEntry  = T1.SrcObjAbs AND T0.ObjType = T1.SrcObjType
+		INNER JOIN WTX1 T2 ON T1.AbsEntry  = T2.AbsEntry
+		INNER JOIN OWTD T3 ON T2.WTaxAbsId = T3.AbsEntry
+		GROUP BY  T0.DocEntry, T0.DocNum, T0.ObjType, T3.WTCode, T3.WTName, T2.Rate
+		
+		) AS IMPUESTOS
+		WHERE IMPUESTOS.DocEntry = DocKey AND IMPUESTOS.ObjType = ObjectId
+		ORDER BY IMPUESTOS.DocEntry;
+	
+	ELSEIF ObjectId = 15 THEN
+	
+		SELECT 
+		IMPUESTOS.Indicador,
+		IMPUESTOS.ObjType,
+		IMPUESTOS.DocEntry,
+		IMPUESTOS.DocNum,
+		IMPUESTOS.TaxCode,
+		IMPUESTOS.Name,
+		IMPUESTOS.VatPrcnt,
+		IMPUESTOS.WTaxSum,
+		IMPUESTOS.LineTotal
+		FROM (
+		--Detalle IVA
+		SELECT 
+		0 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T1.TaxCode, T2.Name, T1.VatPrcnt, 
+		SUM(T3.BaseSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS LineTotal,
+		SUM(T1.VatSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSum
+		FROM ODLN T0
+		INNER JOIN DLN1 T1 ON T0.DocEntry = T1.DocEntry
+		LEFT OUTER JOIN OSTC T2 ON T1.TaxCode = T2.Code
+		INNER JOIN DLN4 T3 ON T1.DocEntry = T3.DocEntry AND T1.LineNum = T3.LineNum
+		WHERE T0.Letter  'B'
+		GROUP BY T0.DocEntry, T0.DocNum, T0.ObjType, T1.TaxCode,T2.Name, T1.VatPrcnt
+		
+		UNION ALL
+		
+		SELECT 
+		1 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T3.WTCode, T3.WTName, T2.Rate, 
+		SUM(T2.BaseNetSum CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS BaseNetSum,
+		SUM(T2.WTaxSum    CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS WTaxSum
+		FROM ODLN T0
+		INNER JOIN OWTX T1 ON T0.DocEntry  = T1.SrcObjAbs AND T0.ObjType = T1.SrcObjType
+		INNER JOIN WTX1 T2 ON T1.AbsEntry  = T2.AbsEntry
+		INNER JOIN OWTD T3 ON T2.WTaxAbsId = T3.AbsEntry
+		GROUP BY  T0.DocEntry, T0.DocNum, T0.ObjType, T3.WTCode, T3.WTName, T2.Rate
+		
+		) AS IMPUESTOS
+		WHERE IMPUESTOS.DocEntry = DocKey AND IMPUESTOS.ObjType = ObjectId
+		ORDER BY IMPUESTOS.DocEntry;
+
+	ELSEIF ObjectId = 22 THEN
+			
+		SELECT 
+		IMPUESTOS.Indicador,
+		IMPUESTOS.ObjType,
+		IMPUESTOS.DocEntry,
+		IMPUESTOS.DocNum,
+		IMPUESTOS.TaxCode,
+		IMPUESTOS.Name,
+		IMPUESTOS.VatPrcnt,
+		IMPUESTOS.WTaxSum,
+		IMPUESTOS.LineTotal
+		FROM (
+		--Detalle IVA
+		SELECT 
+		0 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T1.TaxCode, T2.Name, T1.VatPrcnt, 
+		SUM(T3.BaseSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS LineTotal,
+		SUM(T1.VatSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSum
+		FROM OPOR T0
+		INNER JOIN POR1 T1 ON T0.DocEntry = T1.DocEntry
+		LEFT OUTER JOIN OSTC T2 ON T1.TaxCode = T2.Code
+		INNER JOIN POR4 T3 ON T1.DocEntry = T3.DocEntry AND T1.LineNum = T3.LineNum
+		GROUP BY T0.DocEntry, T0.DocNum, T0.ObjType, T1.TaxCode,T2.Name, T1.VatPrcnt
+		
+		UNION ALL
+		
+		SELECT 
+		1 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T3.WTCode, T3.WTName, T2.Rate, 
+		SUM(T2.BaseNetSum CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS BaseNetSum,
+		SUM(T2.WTaxSum    CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS WTaxSum
+		FROM OPOR T0
+		INNER JOIN OWTX T1 ON T0.DocEntry  = T1.SrcObjAbs AND T0.ObjType = T1.SrcObjType
+		INNER JOIN WTX1 T2 ON T1.AbsEntry  = T2.AbsEntry
+		INNER JOIN OWTD T3 ON T2.WTaxAbsId = T3.AbsEntry
+		GROUP BY  T0.DocEntry, T0.DocNum, T0.ObjType, T3.WTCode, T3.WTName, T2.Rate
+		
+		) AS IMPUESTOS
+		WHERE IMPUESTOS.DocEntry = DocKey AND IMPUESTOS.ObjType = ObjectId
+		ORDER BY IMPUESTOS.DocEntry;
+	
+	ELSEIF ObjectId = 23 THEN
+			
+		SELECT 
+		IMPUESTOS.Indicador,
+		IMPUESTOS.ObjType,
+		IMPUESTOS.DocEntry,
+		IMPUESTOS.DocNum,
+		IMPUESTOS.TaxCode,
+		IMPUESTOS.Name,
+		IMPUESTOS.VatPrcnt,
+		IMPUESTOS.WTaxSum,
+		IMPUESTOS.LineTotal
+		FROM (
+		--Detalle IVA
+		SELECT 
+		0 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T1.TaxCode, T2.Name, T1.VatPrcnt, 
+		SUM(T3.BaseSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS LineTotal,
+		SUM(T1.VatSumCASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END)AS WTaxSum
+		FROM OQUT T0
+		INNER JOIN QUT1 T1 ON T0.DocEntry = T1.DocEntry
+		LEFT OUTER JOIN OSTC T2 ON T1.TaxCode = T2.Code
+		INNER JOIN QUT4 T3 ON T1.DocEntry = T3.DocEntry AND T1.LineNum = T3.LineNum
+		GROUP BY T0.DocEntry, T0.DocNum, T0.ObjType, T1.TaxCode,T2.Name, T1.VatPrcnt
+		
+		UNION ALL
+		
+		SELECT 
+		1 AS Indicador,
+		T0.DocEntry, 
+		T0.ObjType,
+		T0.DocNum, T3.WTCode, T3.WTName, T2.Rate, 
+		SUM(T2.BaseNetSum CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS BaseNetSum,
+		SUM(T2.WTaxSum    CASE WHEN T0.DocRate = 0 THEN 1 ELSE T0.DocRate END) AS WTaxSum
+		FROM OQUT T0
+		INNER JOIN OWTX T1 ON T0.DocEntry  = T1.SrcObjAbs AND T0.ObjType = T1.SrcObjType
+		INNER JOIN WTX1 T2 ON T1.AbsEntry  = T2.AbsEntry
+		INNER JOIN OWTD T3 ON T2.WTaxAbsId = T3.AbsEntry
+		GROUP BY  T0.DocEntry, T0.DocNum, T0.ObjType, T3.WTCode, T3.WTName, T2.Rate
+		
+		) AS IMPUESTOS
+		WHERE IMPUESTOS.DocEntry = DocKey AND IMPUESTOS.ObjType = ObjectId
+		ORDER BY IMPUESTOS.DocEntry;
+		
+	END IF;	
+
+END;
